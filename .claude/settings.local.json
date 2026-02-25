@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -v 2>/dev/null && composer -V 2>/dev/null)",
+      "Bash(cd /c/vokke-projects/ai-developer-test && composer create-project laravel/laravel . 2>&1)",
+      "Bash(rm:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}
