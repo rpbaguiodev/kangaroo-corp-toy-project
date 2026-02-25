@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+mock-db-fake-data.sql
+mock-db-fake-data.zip
+mock-db-fake-data/
