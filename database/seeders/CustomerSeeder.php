@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Customer;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -11,20 +12,34 @@ class CustomerSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the customers table by importing the mock SQL data file directly
-     * into MySQL. Using a native shell import avoids PHP memory limits that
-     * would be hit when loading a large SQL file via DB::unprepared().
+     * Fallback record count when the SQL file is not available.
+     * Enough records to meaningfully demonstrate search performance.
+     */
+    const FALLBACK_COUNT = 10000;
+
+    /**
+     * Seed the customers table. Imports mock-db-fake-data.sql when available
+     * for a full ~1.1 million record dataset. Falls back to generating records
+     * via CustomerFactory when the SQL file is not present (e.g. on cloud deployments).
      */
     public function run(): void
     {
         $sqlFile = base_path('mock-db-fake-data.sql');
 
-        if (! file_exists($sqlFile)) {
-            $this->command->error("SQL file not found: {$sqlFile}");
-            $this->command->line('Please ensure mock-db-fake-data.sql is in the project root.');
-            return;
+        if (file_exists($sqlFile)) {
+            $this->importFromSql($sqlFile);
+        } else {
+            $this->command->warn('mock-db-fake-data.sql not found. Falling back to factory seed (' . self::FALLBACK_COUNT . ' records).');
+            $this->seedFromFactory();
         }
+    }
 
+    /**
+     * Import customers directly from the SQL file via shell command,
+     * bypassing PHP memory limits for large file handling.
+     */
+    private function importFromSql(string $sqlFile): void
+    {
         $this->command->info('Truncating customers table...');
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('customers')->truncate();
@@ -57,5 +72,18 @@ class CustomerSeeder extends Seeder
 
         $count = DB::table('customers')->count();
         $this->command->info("Import complete. {$count} customer records loaded.");
+    }
+
+    /**
+     * Generate fake customer records using CustomerFactory.
+     * Used as a fallback when the SQL file is not available.
+     */
+    private function seedFromFactory(): void
+    {
+        $this->command->info('Seeding ' . self::FALLBACK_COUNT . ' customers via factory...');
+
+        Customer::factory(self::FALLBACK_COUNT)->create();
+
+        $this->command->info('Done. ' . self::FALLBACK_COUNT . ' customer records created.');
     }
 }
