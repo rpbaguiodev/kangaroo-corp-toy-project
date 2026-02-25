@@ -23,8 +23,10 @@ _Date: 2026-02-25_
 ### Added
 
 - **Customer Seeder** (`database/seeders/CustomerSeeder.php`)
-  - Seeds 300 fake customer records using `CustomerFactory` to replicate realistic data volume for search performance testing.
-  - Registered in `DatabaseSeeder`.
+  - Imports `mock-db-fake-data.sql` (~1.1 million records) directly into MySQL via shell command, bypassing PHP memory limits for large file handling.
+  - Truncates the `customers` table before importing to avoid duplicate key conflicts.
+  - `mock-db-fake-data.sql` and `mock-db-fake-data.zip` added to `.gitignore`.
+  - Run with: `./vendor/bin/sail artisan db:seed --class=CustomerSeeder`
 
 - **FULLTEXT Index Migration** (`database/migrations/2026_02_25_070437_add_fulltext_index_to_customers_table.php`)
   - Adds a MySQL FULLTEXT index on `name`, `email`, `phone`, and `company` columns.
