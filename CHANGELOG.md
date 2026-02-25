@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased] — branch: `feature/search_improvement`
 _Date: 2026-02-25_
 
+> ⚠️ **IMPORTANT:** Run the following commands before seeding or using the application.
+>
+> **1. Run migrations:**
+> ```bash
+> ./vendor/bin/sail artisan migrate
+> ```
+>
+> **2. Seed the database:**
+> ```bash
+> ./vendor/bin/sail artisan db:seed --class=CustomerSeeder
+> ```
+>
+> **3. Benchmark search performance (before and after migration):**
+> ```bash
+> ./vendor/bin/sail artisan benchmark:customer-search
+> ```
+
 ---
 
 ### Fixed
