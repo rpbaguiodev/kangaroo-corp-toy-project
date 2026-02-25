@@ -15,12 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Only seed test user in non-production environments.
+        // User::factory() requires fakerphp/faker which is a dev dependency
+        // and is not available when deployed with --no-dev.
+        if (! app()->isProduction()) {
+            User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
+        }
 
         $this->call(CustomerSeeder::class);
     }
