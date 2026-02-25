@@ -4,23 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Customer::query();
+        $search = $request->input('search');
+        $page   = $request->input('page', 1);
 
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('company', 'like', "%{$search}%");
-            });
-        }
+        $cacheKey  = 'customers.search.' . md5($search . '|page=' . $page);
+        $customers = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($search) {
+            $query = Customer::query();
 
-        $customers = $query->latest()->paginate(10)->withQueryString();
+            if ($search) {
+                $query->whereFullText(['name', 'email', 'phone', 'company'], $search);
+            }
+
+            return $query->latest()->paginate(10)->withQueryString();
+        });
 
         return view('customers.index', compact('customers', 'search'));
     }
@@ -41,6 +43,7 @@ class CustomerController extends Controller
         ]);
 
         Customer::create($validated);
+        Cache::flush();
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer created successfully.');
@@ -62,6 +65,7 @@ class CustomerController extends Controller
         ]);
 
         $customer->update($validated);
+        Cache::flush();
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer updated successfully.');
@@ -69,6 +73,9 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
+        $customer->delete();
+        Cache::flush();
+
         return redirect()->route('customers.index')
             ->with('success', 'Customer deleted successfully.');
     }
